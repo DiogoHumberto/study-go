@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -29,6 +30,7 @@ func main() {
 			initMonitoramento()
 		case 2:
 			fmt.Println("Exibindo logs...")
+			exibeLogs()
 		case 0:
 			fmt.Println("Saindo do programa...")
 			os.Exit(0)
@@ -61,6 +63,18 @@ func lerComando() int {
 	fmt.Println("--> Comando escolhido: ", comando)
 
 	return comando
+}
+
+func exibeLogs() {
+
+	arquivo, err := os.ReadFile("log.txt")
+
+	if err != nil {
+		fmt.Println("Ocorreu um erro:", err)
+	}
+
+	fmt.Println(string(arquivo))
+
 }
 
 func initMonitoramento() {
@@ -121,6 +135,21 @@ func testeSite(site string) {
 	} else {
 		fmt.Println("!!!-->> Site:", site, " : esta com problemas. Status Code:", resp.StatusCode)
 	}
+
+	registraLog(site, resp.StatusCode == 200)
+}
+
+func registraLog(site string, status bool) {
+
+	arquivo, err := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+
+	if err != nil {
+		fmt.Println("Ocorreu um erro:", err)
+	}
+
+	arquivo.WriteString(time.Now().Format("02/01/2006 15:04:05") + " - " + site + " - online: " + strconv.FormatBool(status) + "\n")
+
+	arquivo.Close()
 }
 
 // somente de estudo
